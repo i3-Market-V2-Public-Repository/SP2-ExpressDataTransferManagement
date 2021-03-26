@@ -99,7 +99,7 @@ async function responseData(ID, obj, resource_path){
                 if (err) { 
                     console.log(err); 
                 } 
-                let content = buffer.toString('hex', 0, num)
+                let content = buffer.toString('base64', 0, num)
                 if (getIndex + 1 == keys.length){
                 resolve({"block_id": `${ID}`, "data": `${content}`, "next_block_id":"null"});
                 }else{

@@ -16,7 +16,7 @@ const options = {
         },
         servers: [
             {
-                url: "http://localhost:3000"
+                url: "http://localhost:3001"
             },
         ],
     },
@@ -38,7 +38,7 @@ const logConfiguration = {
 const logger = winston.createLogger(logConfiguration);
 
 // environment variables
-const server_port = process.env.SERVER_PORT || 3000;
+const server_port = process.env.SERVER_PORT || 3001;
 
 const app = express();
 
