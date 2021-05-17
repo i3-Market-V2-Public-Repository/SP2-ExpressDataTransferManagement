@@ -1,0 +1,23 @@
+version: '3.6'
+
+services:
+  app:
+    build: 
+      context: .
+      args: 
+        USER_ID: ${USER_ID-1000}
+        GROUP_ID: ${GROUP_ID-1000}
+    image: ${APP_NAME:-app}
+    container_name: ${APP_NAME:-app}
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      - ./app:/app
+    ports:
+      - ${ADDRESS:-0.0.0.0}:${PORT:-3000}:${PORT:-3000}
+      - 127.0.0.1:${DEBUG_PORT:-9229}:9229
+    command:
+      - npm
+      - run
+      - ${NPM_SCRIPT:-start}

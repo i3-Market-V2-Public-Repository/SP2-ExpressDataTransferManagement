@@ -1,0 +1,31 @@
+{"block_id":"null","block_ack":"null","level":"info","message":"request body"}
+{"message":"The resource exists","level":"info"}
+{"message":"File size is 664 bytes","level":"info"}
+{"message":"Number of blocks: 6","level":"info"}
+{"message":"Hash of the block is 96f1b343f831551fb6b767a3ac228677659b94804a528fbf7fb763d66be69cf4","level":"info"}
+{"message":"Hash of the block is 8508f4395569f5d22298144e49e3755a034b21a0fd1e444f4b95d159fd052ba3","level":"info"}
+{"message":"Hash of the block is ed0557fdb809a4404980f36bb708fcc914c4392daa3118d68eef91fd28b384e8","level":"info"}
+{"message":"Hash of the block is 2a22fb6e59c12d81e87f0ee979c80796afade89b2f5b2f8c9f254ec94dc3c7ca","level":"info"}
+{"message":"Hash of the block is 6376ca5b17936d3f417c1a18c45fed435779f88cde44bf6d8a2d193eb73c5352","level":"info"}
+{"message":"Hash of the block is 9f42e08a96b6718bd1c5cd421a5bf91cbbcf48797eb3db3aa8e910d489a402e6","level":"info"}
+{"message":"Map created","level":"info"}
+{"message":"File checked","level":"info"}
+{"message":"Response is \"block_id\": \"null\", \"data\": \"null\", \"next_block_id\": 96f1b343f831551fb6b767a3ac228677659b94804a528fbf7fb763d66be69cf4","level":"info"}
+{"block_id":"96f1b343f831551fb6b767a3ac228677659b94804a528fbf7fb763d66be69cf4","block_ack":"null","level":"info","message":"request body"}
+{"message":"The resource exists","level":"info"}
+{"block_id":"96f1b343f831551fb6b767a3ac228677659b94804a528fbf7fb763d66be69cf4","data":"N3q8ryccAASao1yDDgIAAAAAAABqAAAAAAAAAO+Nt0PgA3ACBl0AKZlIggNGWbfGXu0+mFnHLkuPaa7XKqp7/9k3SjxKlBhTvf7xUJU/43/WiFqmEtYGDak3o4/2Q/SQsq2N5xIAwNHSzW2RlYvv58hfD8eB/m/wTQYEXx3VpgA=","next_block_id":"8508f4395569f5d22298144e49e3755a034b21a0fd1e444f4b95d159fd052ba3","level":"info","message":"response data"}
+{"block_id":"null","block_ack":"null","level":"info","message":"request body"}
+{"message":"The resource exists","level":"info"}
+{"message":"Map already exists","level":"info"}
+{"message":"File checked","level":"info"}
+{"message":"Response is \"block_id\": \"null\", \"data\": \"null\", \"next_block_id\": 96f1b343f831551fb6b767a3ac228677659b94804a528fbf7fb763d66be69cf4","level":"info"}
+{"block_id":"null","block_ack":"null","level":"info","message":"request body"}
+{"message":"The resource exists","level":"info"}
+{"message":"Map already exists","level":"info"}
+{"message":"File checked","level":"info"}
+{"message":"Response is \"block_id\": \"null\", \"data\": \"null\", \"next_block_id\": 96f1b343f831551fb6b767a3ac228677659b94804a528fbf7fb763d66be69cf4","level":"info"}
+{"block_id":"null","block_ack":"null","level":"info","message":"request body"}
+{"message":"The resource exists","level":"info"}
+{"message":"Map already exists","level":"info"}
+{"message":"File checked","level":"info"}
+{"message":"Response is \"block_id\": \"null\", \"data\": \"null\", \"next_block_id\": 96f1b343f831551fb6b767a3ac228677659b94804a528fbf7fb763d66be69cf4","level":"info"}

@@ -1,0 +1,4 @@
+#!/bin/sh
+SCRIPT_DIR=$(dirname "$0")
+rm -rf "${SCRIPT_DIR}/app/node_modules"
+docker-compose -f "${SCRIPT_DIR}/docker-compose.yaml" --env-file "${SCRIPT_DIR}/.env" down --rmi all --remove-orphans --volumes

@@ -1,0 +1,79 @@
+openapi: "3.0.0"
+info:
+  description: "Express DataTransferManagement API Server"
+  version: "1.0.0"
+  title: "Data Access API"
+  license:
+    name: "Apache 2.0"
+    url: "http://www.apache.org/licenses/LICENSE-2.0.html"
+tags:
+- name: "Data"
+  description: "Get data from the server."
+- name: "Authenticate"
+  description: "Get access token required for retrieving data."
+paths:
+  /{data}:
+    post:
+      tags:
+      - "Data"
+      summary: "Get data"
+      description: ""
+      parameters:
+      - in: "path"
+        name: "data"
+        schema:
+          type: "string"
+        required: true
+        description: "Name of the resource"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - block_id
+                - block_ack
+              properties:
+                block_id:
+                  type: string
+                block_ack:
+                  type: string
+        description: "In the first call block_id and block_ack should have the value null"
+      responses:
+        "200":
+          description: "Response that contains the block id, the data block and the next block id"
+        "401":
+          description: "Access token is missing or invalid"
+        "404":
+          description: "File not found"
+        "500":
+          description: "Internal server error"
+      security:
+        - bearerAuth: []
+  /oidc/login/consumer:
+    get:
+      tags:
+      - "Authenticate"
+      summary: "Authenticate as consumer"
+      parameters: []
+      responses:
+        "200":
+          description: "a QR code is sent and should be scanned with a mobile phone using uPort to get the access token. For testing it is easier to just connect to this endpoint directly from a browser"
+  /oidc/login/provider:
+    get:
+      tags:
+      - "Authenticate"
+      summary: "Authenticate as provider"
+      parameters: []
+      responses:
+        "200":
+          description: "a QR code is sent and should be scanned with a mobile phone using uPort to get the access token. For testing it is easier to just connect to this endpoint directly from a browser"
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT  # optional, for documentation purposes only
+security:
+  - bearerAuth: []

@@ -1,0 +1,5 @@
+#!/bin/sh
+SCRIPT_DIR=$(dirname "$0")
+# export USER_ID=`id -u`
+# export GROUP_ID=`id -g`
+docker-compose -f "${SCRIPT_DIR}/docker-compose.yaml" --env-file "${SCRIPT_DIR}/.env" up
