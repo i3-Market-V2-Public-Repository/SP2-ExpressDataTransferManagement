@@ -36,4 +36,5 @@ const jwt = {
   aud: server.addr
 }
 
+
 export default { server, oidc: oidcConfig, api, jwt }

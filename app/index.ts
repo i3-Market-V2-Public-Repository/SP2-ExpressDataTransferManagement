@@ -32,8 +32,9 @@ const main = async function (): Promise<void> {
   /**
    * Listen on .env SERVER_PORT or 3000/tcp, on all network interfaces.
    */
+
   const server = http.createServer(app)
-  const { port, addr } = config.server
+  const { addr, port } = config.server
   server.listen(port, addr)
 
   /**
