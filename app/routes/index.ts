@@ -250,7 +250,7 @@ function mapData(resource_map_path : string, resource_path : string){
 }
 
 // response formating
-async function responseData(ID : string, obj: any, resource_path : string){
+export async function responseData(ID : string, obj: any, resource_path : string){
   let block = block_size
   // get index of ID
   let keys: string[] = []
