@@ -153,6 +153,7 @@ async(req, res) => {
               res.send({"block_id": "null", "next_block_id": `${index[0]}`, "cipherblock": "null", "poO": "null"});
           }else if (ID != 'null' && ACK == 'null') {
               let response: any = await responseData(ID, obj, resource_path);
+              console.log('RESPONSE DATA:'+`${response.data}`)
               await proofOfOrigin(parseInt(ID), response.data).then(
                 proof => {
                   delete response['data']
@@ -169,6 +170,7 @@ async(req, res) => {
               //res.send(response)
           } else if ((ID != 'null') && (ACK != 'null')){
             let response: any = await responseData(ID, obj, resource_path);
+            console.log('RESPONSE DATA:'+`${response.data}`)
             await proofOfOrigin(parseInt(ID), response.data).then(
               proof => {
                 delete response['data']
