@@ -15,8 +15,8 @@ interface OidcConfig {
 const oidcConfig: OidcConfig = {
   providerUri: 'https://identity1.i3-market.eu/oidc',
   client: {
-    client_id: 'I565pOpRORE6FRSXDXdn8',
-    client_secret: 'XsOEc4im2p7cnp-FpIku9VPROC5-Wkc3GGct3bCV2HRB-Oe1CGT1sdV8uDAif81Ypd57rDycAXyD2csnzRT9eA',
+    client_id: '23DdUESxhQvj3a2fmIaqu',
+    client_secret: '5UG6q_hfHWdiKJlu8l7Ps-7LDmpglxsZeuNG48Vm6xJSus1ZArEHKfPFOjUeYywQYjWbIwO1Lsmhaoe8pOQidg',
     redirect_uris: [`${server.publicUri}/oidc/cb`],
     application_type: 'web',
     grant_types: ['authorization_code'],

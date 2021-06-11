@@ -93,12 +93,12 @@ export default async (): Promise<typeof router> => {
   )
 /*3###################################################################*/
 
-let proofOfOrigin = async(block_id: number, block: string) => {
+let proofOfOrigin = async(block_id: number, block: Buffer) => {
   const exchangeID = block_id
   const jwk = await nonRepudiationProofs.createJwk()
   secret[0] = jwk
   const poO = await nonRepudiationProofs.createPoO(privateKeyProvider,
-                                                    block,
+                                                    toArrayBuffer(block),
                                                     'urn:example:provider',
                                                     'urn:example:consumer',
                                                     exchangeID,
@@ -153,9 +153,12 @@ async(req, res) => {
               res.send({"block_id": "null", "next_block_id": `${index[0]}`, "cipherblock": "null", "poO": "null"});
           }else if (ID != 'null' && ACK == 'null') {
               let response: any = await responseData(ID, obj, resource_path);
-              console.log('RESPONSE DATA:'+`${response.data}`)
-              await proofOfOrigin(parseInt(ID), response.data).then(
+              let dta = Buffer.from(response.data)
+              console.log('BUFEER: '+dta.length)
+              //console.log('RESPONSE DATA:'+`${response.data}`)
+              proofOfOrigin(parseInt(ID), dta).then(
                 proof => {
+                  console.log(proof)
                   delete response['data']
                   const response_data = Object.assign(response, proof)
                   console.log(response_data)
@@ -170,8 +173,10 @@ async(req, res) => {
               //res.send(response)
           } else if ((ID != 'null') && (ACK != 'null')){
             let response: any = await responseData(ID, obj, resource_path);
-            console.log('RESPONSE DATA:'+`${response.data}`)
-            await proofOfOrigin(parseInt(ID), response.data).then(
+            let dta = Buffer.from(response.data)
+            console.log('BUFEER: '+dta.length)
+            //console.log('RESPONSE DATA:'+`${response.data}`)
+            proofOfOrigin(parseInt(ID), dta).then(
               proof => {
                 delete response['data']
                 const response_data = Object.assign(response, proof)
@@ -232,14 +237,14 @@ function mapData(resource_map_path : string, resource_path : string){
   const nr_of_blocks = Math.ceil(size/block_size);
   logger.info(`Number of blocks: ${nr_of_blocks}`);
 
-  var data = fs.readFileSync(resource_map_path, 'utf-8');
+  var data = fs.readFileSync(resource_map_path, 'binary');
   let obj = JSON.parse(data);
   let hash = '';
   var index = 0;
   while(index < (nr_of_blocks*block_size)){
       var buffer = Buffer.alloc(block_size);
       fs.readSync(fd, buffer, 0, block_size, index)
-      let content = buffer.toString('hex', 0)
+      let content = buffer
       hash = crypto.createHash('sha256').update(content+hash).digest('hex');
       logger.info(`Hash of the block is ${hash}`);
               
@@ -281,11 +286,12 @@ export async function responseData(ID : string, obj: any, resource_path : string
               if (err) { 
                   console.log(err); 
               } 
-              let content = buffer.toString('hex', 0, num)
+              let content = buffer
+              console.log('CONTENT: '+content.length)
               if (getIndex + 1 == keys.length){
-              resolve({"block_id": `${ID}`, "data": `${content}`, "next_block_id":"null"});
+              resolve({block_id: ID, data: content, next_block_id: null});
               }else{
-              resolve({"block_id": `${ID}`, "data": `${content}`, "next_block_id":`${keys[getIndex+1]}`})
+              resolve({block_id: ID, data: content, next_block_id:keys[getIndex+1]})
               }
           });
           // Close the opened file. 
@@ -298,4 +304,8 @@ export async function responseData(ID : string, obj: any, resource_path : string
   }); 
   });
   return promise;
+}
+
+function toArrayBuffer(buffer) {
+  return buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength);
 }
