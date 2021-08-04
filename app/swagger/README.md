@@ -1,0 +1,1 @@
+# Contains the secure data access OpenApi specification
