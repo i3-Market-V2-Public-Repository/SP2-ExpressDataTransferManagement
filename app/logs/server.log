@@ -637,3 +637,94 @@
 {"message":"The resource exists","level":"info"}
 {"message":"Map already exists","level":"info"}
 {"message":"File checked","level":"info"}
+{"block_id":"null","block_ack":"null","level":"info","message":"request body"}
+{"message":"The resource exists","level":"info"}
+{"message":"Map already exists","level":"info"}
+{"message":"File checked","level":"info"}
+{"message":"Response is \"block_id\": \"null\", \"data\": \"null\", \"next_block_id\": aa2f58d4d883ef9d91b9324ca9da3ef24a93d2b4727d827d04adfcef03d8109e","level":"info"}
+{"block_id":"null","block_ack":"null","level":"info","message":"request body"}
+{"message":"The resource exists","level":"info"}
+{"message":"Map already exists","level":"info"}
+{"message":"File checked","level":"info"}
+{"message":"Response is \"block_id\": \"null\", \"data\": \"null\", \"next_block_id\": aa2f58d4d883ef9d91b9324ca9da3ef24a93d2b4727d827d04adfcef03d8109e","level":"info"}
+{"block_id":"aa2f58d4d883ef9d91b9324ca9da3ef24a93d2b4727d827d04adfcef03d8109e","block_ack":"null","level":"info","message":"request body"}
+{"message":"The resource exists","level":"info"}
+{"block_id":"7dac4b8891dcf94d1111d417f0d0571a3b370e94a78645fc847049a33e15c74d","block_ack":"aa2f58d4d883ef9d91b9324ca9da3ef24a93d2b4727d827d04adfcef03d8109e","level":"info","message":"request body"}
+{"message":"The resource exists","level":"info"}
+{"block_id":"611c20174174895f68e0499655a12957cf93e51b8af8d8d71c4df78ba4cf9da5","block_ack":"7dac4b8891dcf94d1111d417f0d0571a3b370e94a78645fc847049a33e15c74d","level":"info","message":"request body"}
+{"message":"The resource exists","level":"info"}
+{"message":"File size is 664 bytes","level":"info"}
+{"message":"New block size is: 152","level":"info"}
+{"block_id":"null","block_ack":"611c20174174895f68e0499655a12957cf93e51b8af8d8d71c4df78ba4cf9da5","level":"info","message":"request body"}
+{"message":"The resource exists","level":"info"}
+{"message":"Map already exists","level":"info"}
+{"message":"File checked","level":"info"}
+{"block_id":"null","block_ack":"null","level":"info","message":"request body"}
+{"message":"The resource exists","level":"info"}
+{"message":"Map already exists","level":"info"}
+{"message":"File checked","level":"info"}
+{"message":"Response is \"block_id\": \"null\", \"data\": \"null\", \"next_block_id\": aa2f58d4d883ef9d91b9324ca9da3ef24a93d2b4727d827d04adfcef03d8109e","level":"info"}
+{"block_id":"null","block_ack":"null","level":"info","message":"request body"}
+{"message":"The resource exists","level":"info"}
+{"message":"Map already exists","level":"info"}
+{"message":"File checked","level":"info"}
+{"message":"Response is \"block_id\": \"null\", \"data\": \"null\", \"next_block_id\": aa2f58d4d883ef9d91b9324ca9da3ef24a93d2b4727d827d04adfcef03d8109e","level":"info"}
+{"block_id":"aa2f58d4d883ef9d91b9324ca9da3ef24a93d2b4727d827d04adfcef03d8109e","block_ack":"null","level":"info","message":"request body"}
+{"message":"The resource exists","level":"info"}
+{"block_id":"null","block_ack":"null","level":"info","message":"request body"}
+{"message":"The resource exists","level":"info"}
+{"message":"Map already exists","level":"info"}
+{"message":"File checked","level":"info"}
+{"message":"Response is \"block_id\": \"null\", \"data\": \"null\", \"next_block_id\": aa2f58d4d883ef9d91b9324ca9da3ef24a93d2b4727d827d04adfcef03d8109e","level":"info"}
+{"block_id":"aa2f58d4d883ef9d91b9324ca9da3ef24a93d2b4727d827d04adfcef03d8109e","block_ack":"null","level":"info","message":"request body"}
+{"message":"The resource exists","level":"info"}
+{"block_id":"null","block_ack":"null","level":"info","message":"request body"}
+{"message":"The resource exists","level":"info"}
+{"message":"Map already exists","level":"info"}
+{"message":"File checked","level":"info"}
+{"message":"Response is \"block_id\": \"null\", \"data\": \"null\", \"next_block_id\": aa2f58d4d883ef9d91b9324ca9da3ef24a93d2b4727d827d04adfcef03d8109e","level":"info"}
+{"block_id":"aa2f58d4d883ef9d91b9324ca9da3ef24a93d2b4727d827d04adfcef03d8109e","block_ack":"null","level":"info","message":"request body"}
+{"message":"The resource exists","level":"info"}
+{"block_id":"aa2f58d4d883ef9d91b9324ca9da3ef24a93d2b4727d827d04adfcef03d8109e","block_ack":"null","level":"info","message":"request body"}
+{"message":"The resource exists","level":"info"}
+{"block_id":"null","block_ack":"null","level":"info","message":"request body"}
+{"message":"The resource exists","level":"info"}
+{"message":"Map already exists","level":"info"}
+{"message":"File checked","level":"info"}
+{"message":"Response is \"block_id\": \"null\", \"data\": \"null\", \"next_block_id\": aa2f58d4d883ef9d91b9324ca9da3ef24a93d2b4727d827d04adfcef03d8109e","level":"info"}
+{"block_id":"aa2f58d4d883ef9d91b9324ca9da3ef24a93d2b4727d827d04adfcef03d8109e","block_ack":"null","level":"info","message":"request body"}
+{"message":"The resource exists","level":"info"}
+{"block_id":"7dac4b8891dcf94d1111d417f0d0571a3b370e94a78645fc847049a33e15c74d","block_ack":"aa2f58d4d883ef9d91b9324ca9da3ef24a93d2b4727d827d04adfcef03d8109e","level":"info","message":"request body"}
+{"message":"The resource exists","level":"info"}
+{"block_id":"611c20174174895f68e0499655a12957cf93e51b8af8d8d71c4df78ba4cf9da5","block_ack":"7dac4b8891dcf94d1111d417f0d0571a3b370e94a78645fc847049a33e15c74d","level":"info","message":"request body"}
+{"message":"The resource exists","level":"info"}
+{"message":"File size is 664 bytes","level":"info"}
+{"message":"New block size is: 152","level":"info"}
+{"block_id":"null","block_ack":"611c20174174895f68e0499655a12957cf93e51b8af8d8d71c4df78ba4cf9da5","level":"info","message":"request body"}
+{"message":"The resource exists","level":"info"}
+{"message":"Map already exists","level":"info"}
+{"message":"File checked","level":"info"}
+{"block_id":"null","block_ack":"null","level":"info","message":"request body"}
+{"message":"The resource exists","level":"info"}
+{"message":"Map already exists","level":"info"}
+{"message":"File checked","level":"info"}
+{"message":"Response is \"block_id\": \"null\", \"data\": \"null\", \"next_block_id\": aa2f58d4d883ef9d91b9324ca9da3ef24a93d2b4727d827d04adfcef03d8109e","level":"info"}
+{"block_id":"aa2f58d4d883ef9d91b9324ca9da3ef24a93d2b4727d827d04adfcef03d8109e","block_ack":"null","level":"info","message":"request body"}
+{"message":"The resource exists","level":"info"}
+{"block_id":"null","block_ack":"null","level":"info","message":"request body"}
+{"message":"The resource exists","level":"info"}
+{"message":"Map already exists","level":"info"}
+{"message":"File checked","level":"info"}
+{"message":"Response is \"block_id\": \"null\", \"data\": \"null\", \"next_block_id\": aa2f58d4d883ef9d91b9324ca9da3ef24a93d2b4727d827d04adfcef03d8109e","level":"info"}
+{"block_id":"aa2f58d4d883ef9d91b9324ca9da3ef24a93d2b4727d827d04adfcef03d8109e","block_ack":"null","level":"info","message":"request body"}
+{"message":"The resource exists","level":"info"}
+{"block_id":"7dac4b8891dcf94d1111d417f0d0571a3b370e94a78645fc847049a33e15c74d","block_ack":"aa2f58d4d883ef9d91b9324ca9da3ef24a93d2b4727d827d04adfcef03d8109e","level":"info","message":"request body"}
+{"message":"The resource exists","level":"info"}
+{"block_id":"611c20174174895f68e0499655a12957cf93e51b8af8d8d71c4df78ba4cf9da5","block_ack":"7dac4b8891dcf94d1111d417f0d0571a3b370e94a78645fc847049a33e15c74d","level":"info","message":"request body"}
+{"message":"The resource exists","level":"info"}
+{"message":"File size is 664 bytes","level":"info"}
+{"message":"New block size is: 152","level":"info"}
+{"block_id":"null","block_ack":"611c20174174895f68e0499655a12957cf93e51b8af8d8d71c4df78ba4cf9da5","level":"info","message":"request body"}
+{"message":"The resource exists","level":"info"}
+{"message":"Map already exists","level":"info"}
+{"message":"File checked","level":"info"}

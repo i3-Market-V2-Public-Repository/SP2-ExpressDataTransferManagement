@@ -6,9 +6,7 @@ import passportPromise from '../passport'
 import jwt, { decode } from 'jsonwebtoken'
 import config from '../config'
 import { TokenSet } from 'openid-client'
-require('isomorphic-fetch');
 import sqlite3 from 'sqlite3'
-/*1###################################################################*/
 import fs from 'fs'
 import crypto from 'crypto'
 import bodyParser from 'body-parser'
@@ -16,18 +14,19 @@ import winston from 'winston'
 import path from 'path'
 import * as nonRepudiationProofs from '@i3-market/non-repudiation-proofs'
 import  parseJwk from 'jose/jwk/parse'
-/*1###################################################################*/
+
+require('isomorphic-fetch');
+
 const router = express.Router()
 
 interface JwtClaims {
   sub: string
   scope: string
 }
-/*2###################################################################*/
 
-// environment variables
+// Load environment variables
 const dotenv = require('dotenv').config({ path: path.resolve(__dirname, '../.env') })
-let block_size = Number(process.env.BLOCK_SIZE) || 128;
+let block_size = Number(process.env.BLOCK_SIZE) || 256;
 router.use(bodyParser.json());
 
 // Logger configuration
@@ -41,21 +40,25 @@ const logConfiguration = {
 
 // Create logger
 const logger = winston.createLogger(logConfiguration);
-let price:any = 0.156
 
-/*2###################################################################*/
+// Variables for invoice response to client (hardcoded for now)
+let BlockPrice:number = 0.156
+let VAT:number = 21
+let CompanyName:string = 'Siemens'
+let ContractID:string = '0x388FbEd8b353D81769a4585TFc271A6302D45f20'
+
+// Variables to temporary store proofs until they are added to database
+let secret;
+let proof;
+let ID: string = "ID";
+let ProviderID;
+let PoO;
+let PoR;
+let ConsumerID;
+
 export default async (): Promise<typeof router> => {
-  
-  let secret: any = [];
-  let proof: any = [];
-  let ID: any = "id";
 
-  let ConsumerID;
-  let ProviderID;
-  let PoO;
-  let PoR;
-
-  //Read Provider Keys
+  //Load Keys from json files
   let privateKeyStrProvider = fs.readFileSync('./keys/privateKeyProvider.json', {encoding:'utf-8', flag:'r'})
   let publicKeyStrProvider = fs.readFileSync('./keys/publicKeyProvider.json', {encoding:'utf-8', flag:'r'})
   let publicKeyStrConsumer = fs.readFileSync('./keys/publicKeyConsumer.json', {encoding:'utf-8', flag:'r'})
@@ -103,12 +106,12 @@ export default async (): Promise<typeof router> => {
       res.json({ type: 'jwt', jwt })
     }
   )
-/*3###################################################################*/
 
+//Function that creates proof of origin
 let proofOfOrigin = async(block_id: number, block: Buffer) => {
   const exchangeID = block_id
   const jwk = await nonRepudiationProofs.createJwk()
-  secret[0] = jwk
+  secret = jwk
   ProviderID = 'urn:example:provider'
   const poO = await nonRepudiationProofs.createPoO(privateKeyProvider,
                                                     toArrayBuffer(block),
@@ -117,33 +120,35 @@ let proofOfOrigin = async(block_id: number, block: Buffer) => {
                                                     exchangeID,
                                                     block_id,
                                                     jwk)
-  proof[0] = poO
+  proof = poO
   return poO
 }
 
-/*3###################################################################*/
-  router.get('/protected', passport.authenticate('jwtBearer', { session: false }),
-    (req, res) => {
-      res.json({ msg: 'Do you think we\'re done?! Put yourself to work, you loser!' })
-    }
-  )
-/*4###################################################################*/
+// Checks if auth is working
+router.get('/protected', passport.authenticate('jwtBearer', { session: false }),
+  (req, res) => {
+    res.json({ msg: 'Do you think we\'re done?! Put yourself to work, you loser!' })
+  }
+)
+
+// Invoice call that returns a detailed response about how much the client has to pay
 router.post('/createInvoice', (req, res) => {
   let fromDate = req.body.fromDate
   let toDate = req.body.toDate
   const db = connectToDatabase()
   countBlocks(db, x, fromDate, toDate, res)
   console.log(toDate)
-  //res.json({msg:"Done"})
 })
 
+// Method that verifies if proof of reception is valid and if it is, a hash is sent to Auditable Accounting
+// in order to receive a proof of publication
 router.post('/validatePoR', async(req, res) => {
-  console.log("The poO is"+ proof[0]['poO'])
-  const validPoR = await nonRepudiationProofs.validatePoR(publicKeyConsumer, req.body.poR, proof[0]['poO'])
+  console.log("The poO is"+ proof['poO'])
+  const validPoR = await nonRepudiationProofs.validatePoR(publicKeyConsumer, req.body.poR, proof['poO'])
   if (validPoR === true) {
-    console.log(secret[0])
+    console.log(secret)
     PoR = req.body.poR
-    PoO = proof[0]['poO']
+    PoO = proof['poO']
     const jsonObject = `{ ${ID}: { PoO: ${PoO}, PoR: ${PoR} } }`
     const hash = crypto.createHash('sha256').update(jsonObject).digest('hex');
     console.log("The hash is: " + hash)
@@ -163,7 +168,7 @@ router.post('/validatePoR', async(req, res) => {
     const db = connectToDatabase()
     const Timestamp = getTimestamp()
     writeToDatabase(db, Timestamp, ConsumerID, ID, PoO, PoR, JSON.stringify(PoP))
-    res.jsonp({ "jwk": secret[0], "poP": PoP })
+    res.jsonp({ "jwk": secret, "poP": PoP })
   } else {
     res.json({msg: 'Invalid proof of reception'})
   }
@@ -197,30 +202,26 @@ async(req, res) => {
               res.send({"block_id": "null", "next_block_id": `${index[0]}`, "cipherblock": "null", "poO": "null"});
           }else if (ID != 'null' && ACK == 'null') {
               let response: any = await responseData(ID, obj, resource_path);
-              let dta = Buffer.from(response.data)
-              console.log('BUFEER: '+dta.length)
-              //console.log('RESPONSE DATA:'+`${response.data}`)
-              proofOfOrigin(parseInt(ID), dta).then(
+              let rawBufferData = Buffer.from(response.data)
+              console.log('BUFEER: ' + rawBufferData.length)
+              proofOfOrigin(parseInt(ID), rawBufferData).then(
                 proof => {
                   console.log(proof)
                   delete response['data']
                   const response_data = Object.assign(response, proof)
                   console.log(response_data)
-                  console.log("Heeere")
                   let ciphertext = async() => {
-                    nonRepudiationProofs.decryptCipherblock(response_data.cipherblock, secret[0]).then(o => {console.log(o)})
+                    nonRepudiationProofs.decryptCipherblock(response_data.cipherblock, secret).then(o => {console.log(o)})
                   }
                   ciphertext()
                   res.send(response_data)
                 }
               )
-              //res.send(response)
           } else if ((ID != 'null') && (ACK != 'null')){
             let response: any = await responseData(ID, obj, resource_path);
-            let dta = Buffer.from(response.data)
-            console.log('BUFEER: '+dta.length)
-            //console.log('RESPONSE DATA:'+`${response.data}`)
-            proofOfOrigin(parseInt(ID), dta).then(
+            let rawBufferData = Buffer.from(response.data)
+            console.log('BUFEER: ' + rawBufferData.length)
+            proofOfOrigin(parseInt(ID), rawBufferData).then(
               proof => {
                 delete response['data']
                 const response_data = Object.assign(response, proof)
@@ -238,10 +239,6 @@ async(req, res) => {
   }
 });
 
-router.post('/createInvoice', async(req, res) => {
-  const db = connectToDatabase()
-})
-/*4###################################################################*/
   return router
 }
 
@@ -358,6 +355,7 @@ function toArrayBuffer(buffer) {
   return buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength);
 }
 
+// If it doesn't exist create the provider database and return the connection object
 function connectToDatabase (){
   let db = new sqlite3.Database('./db/provider.db3', sqlite3.OPEN_READWRITE | sqlite3.OPEN_CREATE
   , (err) => {
@@ -370,12 +368,14 @@ function connectToDatabase (){
   return db
 }
 
+// Get the date that will be written in the database
 function getTimestamp() {
   const currentDate = new Date();
   const dateFormat = `${currentDate.getFullYear()}` +  '-' + ("0" + (currentDate.getMonth() + 1)).slice(-2) + '-' + ("0" + currentDate.getDate()).slice(-2) 
   return dateFormat;
 }
 
+// Write proofs to database
 function writeToDatabase(db, Timestamp, ConsumerID, BlockID, PoO, PoR, PoP){
 
   db.serialize(() => {
@@ -396,11 +396,13 @@ function writeToDatabase(db, Timestamp, ConsumerID, BlockID, PoO, PoR, PoP){
   })
 }
 
+// Callback function that returns the total BlockPrice
 function x (rows) {
-  let totalPrice = rows.length * price
+  let totalPrice = rows.length * BlockPrice
   return totalPrice
 }
 
+// Function that returns the total ammount the client has to pay
 function countBlocks(db, callback, fromDate, toDate, res){
   let sql = 'SELECT * FROM accounting where Date >= ? AND Date <= ?'
   db.serialize(function(){
@@ -409,7 +411,8 @@ function countBlocks(db, callback, fromDate, toDate, res){
            callback(err);
           }
           let totalPrice = callback(rows)
-          res.json({totalPrice: totalPrice})
+          let NumBlock = totalPrice / BlockPrice
+          res.json({ConsumerID: `${ConsumerID}`, CompanyName: `${CompanyName}`, VAT: `${VAT}`, ContractID: `${ContractID}`, NumBlock: `${NumBlock}`, BlockSize: `${block_size}`, BlockPrice: `${BlockPrice}`, TotalAmount: totalPrice})
       });
 })
 }
