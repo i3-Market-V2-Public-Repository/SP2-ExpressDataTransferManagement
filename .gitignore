@@ -3,3 +3,4 @@ app/config.ts
 app/.npmrc
 .env
 app/db/provider.db3
+/app/*.js
