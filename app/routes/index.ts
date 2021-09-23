@@ -55,6 +55,7 @@ let ProviderID;
 let PoO;
 let PoR;
 let ConsumerID;
+let exchangeID;
 
 export default async (): Promise<typeof router> => {
 
@@ -109,7 +110,7 @@ export default async (): Promise<typeof router> => {
 
 //Function that creates proof of origin
 let proofOfOrigin = async(block_id: number, block: Buffer) => {
-  const exchangeID = block_id
+  exchangeID = 0
   const jwk = await nonRepudiationProofs.createJwk()
   secret = jwk
   ProviderID = 'urn:example:provider'
@@ -121,8 +122,15 @@ let proofOfOrigin = async(block_id: number, block: Buffer) => {
                                                     block_id,
                                                     jwk)
   proof = poO
+  exchangeID = exchangeID + 1 
   return poO
 }
+
+// openapi specification
+router.get('/openapi', (req,res) => {
+  let oas = fs.readFileSync('./openapi/openapi.json', { encoding: 'utf-8', flag: 'r' })
+  res.send(oas)
+})
 
 // Checks if auth is working
 router.get('/protected', passport.authenticate('jwtBearer', { session: false }),
