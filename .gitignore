@@ -1,5 +1,7 @@
 app/node_modules
 app/config.ts
-app/.npmrc
 .env
-logs/
+app/db/*.db3
+app/*.js
+app/routes/*.js
+app/logs/server.log

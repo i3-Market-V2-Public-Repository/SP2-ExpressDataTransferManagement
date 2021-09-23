@@ -13,7 +13,7 @@ import YAML from "yamljs";
 const main = async function (): Promise<void> {
   const app = express()
   const passport = await passportPromise()
-  const swaggerDocument = YAML.load('./swagger/swagger.yaml');
+  const swaggerDocument = YAML.load('./openapi/openapi.yaml');
 
   app.use(session({
     secret: crypto.randomBytes(32).toString('base64'),
