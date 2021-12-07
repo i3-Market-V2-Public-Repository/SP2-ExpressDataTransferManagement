@@ -1,7 +1,7 @@
 'use strict'
-process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+//process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
-import passport from 'passport'
+import * as passport from 'passport'
 import { Strategy as JwtStrategy, ExtractJwt } from 'passport-jwt'
 import { Issuer, Strategy as OidcStrategy, TokenSet } from 'openid-client'
 import config from './config'

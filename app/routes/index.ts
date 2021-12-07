@@ -1,19 +1,22 @@
 'use strict'
 
-import util from 'util'
-import express, { RequestHandler } from 'express'
+import * as util from 'util'
+import * as express from 'express'
+import { RequestHandler } from 'express'
 import passportPromise from '../passport'
-import jwt, { decode } from 'jsonwebtoken'
+import * as jwt from 'jsonwebtoken'
+import { decode } from 'jsonwebtoken'
 import config from '../config'
 import { TokenSet } from 'openid-client'
-import sqlite3 from 'sqlite3'
-import fs from 'fs'
-import crypto from 'crypto'
-import bodyParser from 'body-parser'
-import winston from 'winston'
-import path from 'path'
+import * as sqlite3 from 'sqlite3'
+import * as fs from 'fs'
+import * as crypto from 'crypto'
+import * as bodyParser from 'body-parser'
+import * as winston from 'winston'
+import * as path from 'path'
 import * as nonRepudiationProofs from '@i3-market/non-repudiation-proofs'
 import  parseJwk from 'jose/jwk/parse'
+import client_subscription from '../mqtt/client_subscribtion'
 
 require('isomorphic-fetch');
 
@@ -27,8 +30,8 @@ interface JwtClaims {
 // Load environment variables
 const dotenv = require('dotenv').config({ path: path.resolve(__dirname, '../.env') })
 let block_size = Number(process.env.BLOCK_SIZE) || 256;
-router.use(bodyParser.json());
-
+//router.use(bodyParser.json());
+   
 // Logger configuration
 const logConfiguration = {
   'transports': [
@@ -55,7 +58,8 @@ let ProviderID;
 let PoO;
 let PoR;
 let ConsumerID;
-let exchangeID;
+let exchangeID = 0;
+let streamBlockId = 0
 
 export default async (): Promise<typeof router> => {
 
@@ -110,7 +114,6 @@ export default async (): Promise<typeof router> => {
 
 //Function that creates proof of origin
 let proofOfOrigin = async(block_id: number, block: Buffer) => {
-  exchangeID = 0
   const jwk = await nonRepudiationProofs.createJwk()
   secret = jwk
   ProviderID = 'urn:example:provider'
@@ -122,7 +125,7 @@ let proofOfOrigin = async(block_id: number, block: Buffer) => {
                                                     block_id,
                                                     jwk)
   proof = poO
-  exchangeID = exchangeID + 1 
+  exchangeID = exchangeID + 1
   return poO
 }
 
@@ -131,6 +134,73 @@ router.get('/openapi', (req,res) => {
   let oas = fs.readFileSync('./openapi/openapi.json', { encoding: 'utf-8', flag: 'r' })
   res.send(oas)
 })
+
+//var raw = express.raw({type: 'application/json'})
+const textParser = express.text({ type: "application/json" });
+const jsonParser = express.json({ type: "application/json" });
+
+router.post('/user', textParser, passport.authenticate('jwtBearer', { session: false }), (req,res) => {
+  console.log(req.body)
+  res.sendStatus(200)
+})
+
+router.post('/acl', jsonParser, passport.authenticate('jwtBearer', { session: false }), (req,res) => {
+  var status:number = 200
+  console.log(JSON.stringify(req.body))
+  
+  const header = JSON.parse(JSON.stringify(req.headers))
+  if (header['authorization'].startsWith("Bearer ")){
+    const token = header['authorization'].substring(7, header['authorization'].length);
+    const decodedToken = jwt.decode(token)
+    const sub = decodedToken?.sub
+    if ( req.body.clientid === sub) {
+      if (req.body.topic.startsWith('/to/' + req.body.clientid) || req.body.topic.startsWith('/from/' + req.body.clientid))
+        status = 200
+      else
+        status = 400
+    } else {
+        status = 400 
+    }
+} else {
+  status = 401
+}
+res.sendStatus(status)
+})
+
+//Endpoint to which a Data Souce sends stream data
+router.post('/newdata',async(req, res) => {
+
+  const uid = req.body.uid
+  const data = req.body.data
+
+  if (uid != undefined && data != undefined){
+    const db = connectToDatabase('./db/consumer_subscribers.db3')
+    const client = client_subscription.mqttinit()
+
+    // NRP
+    let rawBufferData = Buffer.from(data)
+    proof = await proofOfOrigin(streamBlockId, rawBufferData)
+    const response_data = {block_id: streamBlockId, cipherblock: proof.cipherblock, poO: proof.poO}
+    streamBlockId = streamBlockId + 1
+    let sql = 'SELECT * FROM consumer_subscribers WHERE DataSourceUid=?'
+    db.serialize(function(){
+      db.all(sql, [uid], (err, rows) => {
+          if (err) {
+           console.log(err);
+          }
+          console.log(rows.length)
+          console.log(rows[0])
+          
+          rows.forEach(function(item, index, array){
+          	client.publish('/to/'+item.ConsumerDid+'/'+item.DataSourceUid, JSON.stringify(response_data))
+          })
+      });
+      db.close()
+})
+  }
+    res.json({ msg: 'Data sent to broker' })
+  }
+)
 
 // Checks if auth is working
 router.get('/protected', passport.authenticate('jwtBearer', { session: false }),
@@ -143,7 +213,7 @@ router.get('/protected', passport.authenticate('jwtBearer', { session: false }),
 router.post('/createInvoice', (req, res) => {
   let fromDate = req.body.fromDate
   let toDate = req.body.toDate
-  const db = connectToDatabase()
+  const db = connectToDatabase('./db/provider.db3')
   countBlocks(db, x, fromDate, toDate, res)
   console.log(toDate)
 })
@@ -151,36 +221,39 @@ router.post('/createInvoice', (req, res) => {
 // Method that verifies if proof of reception is valid and if it is, a hash is sent to Auditable Accounting
 // in order to receive a proof of publication
 router.post('/validatePoR', async(req, res) => {
-  console.log("The poO is"+ proof['poO'])
-  const validPoR = await nonRepudiationProofs.validatePoR(publicKeyConsumer, req.body.poR, proof['poO'])
-  if (validPoR === true) {
-    console.log(secret)
-    PoR = req.body.poR
-    PoO = proof['poO']
-    const jsonObject = `{ ${ID}: { PoO: ${PoO}, PoR: ${PoR} } }`
-    const hash = crypto.createHash('sha256').update(jsonObject).digest('hex');
-    console.log("The hash is: " + hash)
-    let resource: any = await fetch(`http://95.211.3.244:8090/registries`, {
-        method: 'POST',
-        headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ "dataHash": `${hash}`}),
-    })
-        .catch((error) => {
-            console.error('Error:', error);
-        });
-    const PoP = await resource.json();
-    console.log(JSON.stringify(PoP))
-    const db = connectToDatabase()
-    const Timestamp = getTimestamp()
-    writeToDatabase(db, Timestamp, ConsumerID, ID, PoO, PoR, JSON.stringify(PoP))
-    res.jsonp({ "jwk": secret, "poP": PoP })
-  } else {
-    res.json({msg: 'Invalid proof of reception'})
-  }
+  const PoR = req.body.poR
+  const response = validateProofOfReception(PoR)
+  res.jsonp(response)
 })
+
+// Endpoint to register a datasource
+router.post('/regds', (req, res) => {
+  const Uid = req.body.Uid
+  const Description = req.body.Description
+  const URL = req.body.URL
+  const Timestamp = req.body.Timestamp
+  console.log(Description)
+  let status = 200
+  if(Description === 'register'){
+  try {
+    writeRegisteredDataSource(Uid, Description, URL, Timestamp)
+    console.log('Its in :)')
+    status = 200
+  } catch (error) {
+    status = 500
+  }
+  }
+  if(Description === 'unregister'){
+    try {
+      deleteSubscription(Uid)
+      status = 200
+    } catch (error) {
+      status = 500
+    }
+  }
+  res.status(status)
+})
+
 router.post('/:data', passport.authenticate('jwtBearer', { session: false }),
 async(req, res) => {
   try {
@@ -246,7 +319,6 @@ async(req, res) => {
           res.sendStatus(500);
   }
 });
-
   return router
 }
 
@@ -364,8 +436,9 @@ function toArrayBuffer(buffer) {
 }
 
 // If it doesn't exist create the provider database and return the connection object
-function connectToDatabase (){
-  let db = new sqlite3.Database('./db/provider.db3', sqlite3.OPEN_READWRITE | sqlite3.OPEN_CREATE
+// './db/provider.db3'
+function connectToDatabase (pathToDb: string){
+  let db = new sqlite3.Database(pathToDb, sqlite3.OPEN_READWRITE | sqlite3.OPEN_CREATE
   , (err) => {
       if (err) {
           console.error(err.message);
@@ -423,4 +496,79 @@ function countBlocks(db, callback, fromDate, toDate, res){
           res.json({ConsumerID: `${ConsumerID}`, CompanyName: `${CompanyName}`, VAT: `${VAT}`, ContractID: `${ContractID}`, NumBlock: `${NumBlock}`, BlockSize: `${block_size}`, BlockPrice: `${BlockPrice}`, TotalAmount: totalPrice})
       });
 })
+}
+
+export async function validateProofOfReception (PoR:string) {
+
+  PoR = PoR.replace('"','')
+  console.log('The POR is >>> '+PoR)
+  let publicKeyStrConsumer = fs.readFileSync('./keys/publicKeyConsumer.json', {encoding:'utf-8', flag:'r'})
+  const publicKeyConsumer = await parseJwk(JSON.parse(publicKeyStrConsumer), 'ES256')
+
+  console.log("The poO is"+ proof['poO'])
+  const validPoR = await nonRepudiationProofs.validatePoR(publicKeyConsumer, PoR, proof['poO'])
+  if (validPoR === true) {
+    console.log(secret)
+    PoO = proof['poO']
+    const jsonObject = `{ ${ID}: { PoO: ${PoO}, PoR: ${PoR} } }`
+    const hash = crypto.createHash('sha256').update(jsonObject).digest('hex');
+    console.log("The hash is: " + hash)
+    let resource: any = await fetch(`http://95.211.3.244:8090/registries`, {
+        method: 'POST',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ "dataHash": `${hash}`}),
+    })
+        .catch((error) => {
+            console.error('Error:', error);
+        });
+    const PoP = await resource.json();
+    console.log(JSON.stringify(PoP))
+    const db = connectToDatabase('./db/provider.db3')
+    const Timestamp = getTimestamp()
+    writeToDatabase(db, Timestamp, ConsumerID, ID, PoO, PoR, JSON.stringify(PoP))
+    const response = {"jwk": secret, "poP": PoP}
+    return response
+}
+}
+
+// Write registered datasources to database
+function writeRegisteredDataSource(Uid, Description, URL, Timestamp){
+  
+  var db = connectToDatabase('./db/data_sources.db3')
+  
+  db.serialize(() => {
+
+  db.prepare('CREATE TABLE IF NOT EXISTS data_sources(Uid TEXT, Description TEXT, URL TEXT, Timestamp TEXT);', function(err) {
+      if (err) {
+          console.log(err.message)
+      }
+      console.log('Table created')}).run().finalize();
+  console.log("Uid => "+Uid+" Description => "+Description+" URL => "+URL+" Timestamp => "+Timestamp)
+  db.run('INSERT into data_sources(Uid, Description, URL, Timestamp) VALUES (?, ?, ?, ?)', [Uid, Description, URL, Timestamp], function(err, row){
+      if(err){
+          console.log(err.message)
+      }
+      console.log("Entry added to the table")
+  })
+      db.close();
+  })
+}
+export function getProof(){
+  return proof
+}
+
+function deleteSubscription (Uid){
+
+	var db = connectToDatabase('./db/data_sources.db3')
+	db.serialize(() => {
+		db.run('DELETE FROM data_sources WHERE Uid=?', Uid, function(err, row){
+      if(err){
+          console.log(err.message)
+      }
+  })
+      db.close();
+	})
 }

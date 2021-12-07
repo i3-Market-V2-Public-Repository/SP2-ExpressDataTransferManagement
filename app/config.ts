@@ -1,5 +1,8 @@
 import { randomFillSync } from 'crypto'
 import { ClientMetadata } from 'openid-client'
+import * as path from 'path'
+
+const dotenv = require('dotenv').config({ path: path.resolve(__dirname, '../.env') })
 
 const port = Number(process.env.PORT) ?? 3000
 const server = {
@@ -13,10 +16,10 @@ interface OidcConfig {
   client: ClientMetadata
 }
 const oidcConfig: OidcConfig = {
-  providerUri: 'https://identity1.i3-market.eu/oidc',
+  providerUri: 'https://identity1.i3-market.eu/release2/oidc',
   client: {
-    client_id: '23DdUESxhQvj3a2fmIaqu',
-    client_secret: '5UG6q_hfHWdiKJlu8l7Ps-7LDmpglxsZeuNG48Vm6xJSus1ZArEHKfPFOjUeYywQYjWbIwO1Lsmhaoe8pOQidg',
+    client_id: '7AeGhgegBvKpFspi2qMS8',
+    client_secret: '9kwEEun-Wk-05f02JFzVRZAZJf_GmvQjfwJ_kyBdegfmRvWrCkDr6nlB8xkLtc-hGooXBXsbFO0cWkw-_Edaiw',
     redirect_uris: [`${server.publicUri}/oidc/cb`],
     application_type: 'web',
     grant_types: ['authorization_code'],

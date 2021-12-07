@@ -39,6 +39,7 @@
     "@szmarczak/http-timer": "^5.0.1",
     "@types/body-parser": "^1.19.1",
     "@types/isomorphic-fetch": "0.0.35",
+    "@types/mqtt": "^2.5.0",
     "@types/node-jose": "^1.1.6",
     "@types/sqlite3": "^3.1.7",
     "babel-jest": "^27.0.2",
