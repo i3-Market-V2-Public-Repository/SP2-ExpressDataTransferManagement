@@ -66,12 +66,8 @@ function startStream(dataSourceUid) {
                 rows.forEach(async (row) => {
                     const url = row.URL;
                     console.log('The Url is ' + url);
-                    let resource = await fetch(`${url}/start`, {
-                        method: 'POST',
-                        headers: {
-                            'Accept': 'application/json',
-                            'Content-Type': 'application/json'
-                        },
+                    let resource = await fetch(`${url}/subscribe`, {
+                        method: 'GET',
                     });
                     const isSent = await resource.json();
                 });

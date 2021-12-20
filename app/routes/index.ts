@@ -173,7 +173,7 @@ router.post('/newdata',async(req, res) => {
   const uid = req.body.uid
   const data = req.body.data
 
-  if (uid != undefined && data != undefined){
+  //if (uid != undefined && data != undefined){
     const db = connectToDatabase('./db/consumer_subscribers.db3')
     const client = client_subscription.mqttinit()
 
@@ -197,7 +197,7 @@ router.post('/newdata',async(req, res) => {
       });
       db.close()
 })
-  }
+  
     res.json({ msg: 'Data sent to broker' })
   }
 )
@@ -228,22 +228,22 @@ router.post('/validatePoR', async(req, res) => {
 
 // Endpoint to register a datasource
 router.post('/regds', (req, res) => {
-  const Uid = req.body.Uid
-  const Description = req.body.Description
-  const URL = req.body.URL
-  const Timestamp = req.body.Timestamp
+  const Uid = req.body.uid
+  const Description = req.body.description
+  const URL = req.body.url
+  const Action = req.body.action
   console.log(Description)
   let status = 200
-  if(Description === 'register'){
+  if(Action === 'register'){
   try {
-    writeRegisteredDataSource(Uid, Description, URL, Timestamp)
+    writeRegisteredDataSource(Uid, Description, URL, Action)
     console.log('Its in :)')
     status = 200
   } catch (error) {
     status = 500
   }
   }
-  if(Description === 'unregister'){
+  if(Action === 'unregister'){
     try {
       deleteSubscription(Uid)
       status = 200
@@ -251,7 +251,7 @@ router.post('/regds', (req, res) => {
       status = 500
     }
   }
-  res.status(status)
+  res.sendStatus(status)
 })
 
 router.post('/:data', passport.authenticate('jwtBearer', { session: false }),

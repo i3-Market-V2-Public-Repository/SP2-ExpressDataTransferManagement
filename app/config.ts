@@ -18,8 +18,8 @@ interface OidcConfig {
 const oidcConfig: OidcConfig = {
   providerUri: 'https://identity1.i3-market.eu/release2/oidc',
   client: {
-    client_id: '7AeGhgegBvKpFspi2qMS8',
-    client_secret: '9kwEEun-Wk-05f02JFzVRZAZJf_GmvQjfwJ_kyBdegfmRvWrCkDr6nlB8xkLtc-hGooXBXsbFO0cWkw-_Edaiw',
+    client_id: 'qe6SI10nhtibEFZoqEicj',
+    client_secret: 'ETOPW0-Yx5xCKU8WSshUh6ZnzIknqI_5FoICAA7c8INCV-2-3gQA2Sp2NlEiVbm3qWWiGmBQY5BpK8kFqw9ezA',
     redirect_uris: [`${server.publicUri}/oidc/cb`],
     application_type: 'web',
     grant_types: ['authorization_code'],
