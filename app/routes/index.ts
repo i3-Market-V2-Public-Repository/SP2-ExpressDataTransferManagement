@@ -282,6 +282,7 @@ async(req, res) => {
               logger.info(`Response is "block_id": "null", "data": "null", "next_block_id": ${index[0]}`);
               res.send({"block_id": "null", "next_block_id": `${index[0]}`, "cipherblock": "null", "poO": "null"});
           }else if (ID != 'null' && ACK == 'null') {
+            try {
               let response: any = await responseData(ID, obj, resource_path);
               let rawBufferData = Buffer.from(response.data)
               console.log('BUFEER: ' + rawBufferData.length)
@@ -298,17 +299,30 @@ async(req, res) => {
                   res.send(response_data)
                 }
               )
-          } else if ((ID != 'null') && (ACK != 'null')){
-            let response: any = await responseData(ID, obj, resource_path);
-            let rawBufferData = Buffer.from(response.data)
-            console.log('BUFEER: ' + rawBufferData.length)
-            proofOfOrigin(parseInt(ID), rawBufferData).then(
-              proof => {
-                delete response['data']
-                const response_data = Object.assign(response, proof)
-                res.send(response_data)
+            } catch (error) {
+              if(error instanceof Error){
+                console.log(`${error.message}`)
+                res.status(500).send({name: `${error.name}`, message: `${error.message}`})
               }
-            )
+            }
+          } else if ((ID != 'null') && (ACK != 'null')){
+            try {
+              let response: any = await responseData(ID, obj, resource_path);
+              let rawBufferData = Buffer.from(response.data)
+              console.log('BUFEER: ' + rawBufferData.length)
+              proofOfOrigin(parseInt(ID), rawBufferData).then(
+                proof => {
+                  delete response['data']
+                  const response_data = Object.assign(response, proof)
+              res.send(response_data)
+              }
+              )
+            } catch (error) {
+              if(error instanceof Error){
+                console.log(`${error.message}`)
+                res.status(500).send({name: `${error.name}`, message: `${error.message}`})
+              }
+            }
           } else if ((ID == 'null') && (ACK != 'null')){
               res.send({"block_id": "null", "next_block_id": "null", "cipherblock": "null", "poO": "null"});
           }
@@ -389,7 +403,12 @@ export async function responseData(ID : string, obj: any, resource_path : string
   for(let i = 0; i < obj.records.length; i++){
       keys[i] = Object.keys(obj.records[i])[0]
   }
-  let getIndex = keys.indexOf(ID);
+  let getIndex
+  if (keys.indexOf(ID) !== undefined){
+    getIndex = keys.indexOf(ID);
+  } else {
+    throw new Error('The inputed Id is wrong')
+  }
   // check if you got to last block
   if (getIndex + 1 == keys.length){
       block = getFilesizeInBytes(resource_path) % block_size;

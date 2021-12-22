@@ -202,5 +202,9 @@ components:
 security:
   - bearerAuth: []
 servers:
-  - url: 'http://95.211.3.244:3100'
+  - url: /
+  - url: http://95.211.3.244:3100
+  - url: http://95.211.3.249:3100
+  - url: http://95.211.3.250:3100
+  - url: http://95.211.3.251:3100
     variables: {}
