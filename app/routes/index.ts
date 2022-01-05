@@ -170,8 +170,9 @@ res.sendStatus(status)
 //Endpoint to which a Data Souce sends stream data
 router.post('/newdata',async(req, res) => {
 
-  const uid = req.body.uid
-  const data = req.body.data
+  try {
+    const uid = req.body.uid 
+    const data = req.body.data
 
   //if (uid != undefined && data != undefined){
     const db = connectToDatabase('./db/consumer_subscribers.db3')
@@ -196,9 +197,16 @@ router.post('/newdata',async(req, res) => {
           })
       });
       db.close()
-})
+    })
   
-    res.json({ msg: 'Data sent to broker' })
+    res.status(200).send({ msg: 'Data sent to broker' })
+
+  } catch (error) {
+    if(error instanceof Error){
+                console.log(`${error.message}`)
+                res.status(500).send({name: `${error.name}`, message: `${error.message}`})
+            }
+  }
   }
 )
 
@@ -211,47 +219,59 @@ router.get('/protected', passport.authenticate('jwtBearer', { session: false }),
 
 // Invoice call that returns a detailed response about how much the client has to pay
 router.post('/createInvoice', (req, res) => {
-  let fromDate = req.body.fromDate
-  let toDate = req.body.toDate
-  const db = connectToDatabase('./db/provider.db3')
-  countBlocks(db, x, fromDate, toDate, res)
-  console.log(toDate)
+  try {
+    let fromDate = req.body.fromDate
+    let toDate = req.body.toDate
+    const db = connectToDatabase('./db/provider.db3')
+    countBlocks(db, x, fromDate, toDate, res)
+    console.log(toDate)
+  } catch (error) {
+    if(error instanceof Error){
+      console.log(`${error.message}`)
+      res.status(500).send({name: `${error.name}`, message: `${error.message}`})
+  }
+  }
 })
 
 // Method that verifies if proof of reception is valid and if it is, a hash is sent to Auditable Accounting
 // in order to receive a proof of publication
 router.post('/validatePoR', async(req, res) => {
-  const PoR = req.body.poR
-  const response = validateProofOfReception(PoR)
-  res.jsonp(response)
+  try {
+    const PoR = req.body.poR
+    const response = validateProofOfReception(PoR)
+    res.status(200).send(response)
+  } catch (error) {
+    if(error instanceof Error){
+      console.log(`${error.message}`)
+      res.status(500).send({name: `${error.name}`, message: `${error.message}`})
+  }
+  }
 })
 
 // Endpoint to register a datasource
 router.post('/regds', (req, res) => {
-  const Uid = req.body.uid
-  const Description = req.body.description
-  const URL = req.body.url
-  const Action = req.body.action
-  console.log(Description)
-  let status = 200
-  if(Action === 'register'){
   try {
-    writeRegisteredDataSource(Uid, Description, URL, Action)
-    console.log('Its in :)')
-    status = 200
-  } catch (error) {
-    status = 500
-  }
-  }
-  if(Action === 'unregister'){
-    try {
+    const Uid = req.body.uid
+    const Description = req.body.description
+    const URL = req.body.url
+    const Action = req.body.action
+
+    if(Action === 'register'){
+      writeRegisteredDataSource(Uid, Description, URL, Action)
+      console.log('Datasource added to the database')
+      res.status(200).send('OK')
+    }
+    if(Action === 'unregister'){
       deleteSubscription(Uid)
-      status = 200
-    } catch (error) {
-      status = 500
+      console.log('Datasource removed from database')
+      res.status(200).send('OK')
+    }
+  } catch (error) {
+    if(error instanceof Error){
+      console.log(`${error.message}`)
+      res.status(500).send({name: `${error.name}`, message: `${error.message}`})
     }
   }
-  res.sendStatus(status)
 })
 
 router.post('/:data', passport.authenticate('jwtBearer', { session: false }),
@@ -329,8 +349,11 @@ async(req, res) => {
       }else{
           res.sendStatus(404);
       }
-      }catch(e) {
-          res.sendStatus(500);
+      }catch(error) {
+        if(error instanceof Error){
+          console.log(`${error.message}`)
+          res.status(500).send({name: `${error.name}`, message: `${error.message}`})
+      }
   }
 });
   return router
@@ -462,7 +485,7 @@ function connectToDatabase (pathToDb: string){
       if (err) {
           console.error(err.message);
       } else {
-          console.log('Connected to the provider database.');
+          console.log('Connected to ' +pathToDb+ ' database.');
       }
   });
   return db
@@ -484,13 +507,13 @@ function writeToDatabase(db, Timestamp, ConsumerID, BlockID, PoO, PoR, PoP){
       if (err) {
           console.log(err.message)
       }
-      console.log('Table created')}).run().finalize();
+      console.log('Check if table exists before adding proofs to database')}).run().finalize();
   console.log("Date => "+Timestamp+" ConsumerID => "+ConsumerID+" BlockID => "+BlockID+" PoO => "+PoO+" PoR => "+ PoR+" PoP => "+PoR)
   db.run('INSERT into accounting(Date, ConsumerID, BlockID, PoO, PoR, PoP) VALUES (?, ?, ?, ?, ?, ?)', [Timestamp, ConsumerID, BlockID, PoO, PoR, PoP], function(err, row){
       if(err){
           console.log(err.message)
       }
-      console.log("Entry added to the table")
+      console.log("Proofs added to the table")
   })
       db.close();
   })
@@ -564,13 +587,13 @@ function writeRegisteredDataSource(Uid, Description, URL, Timestamp){
       if (err) {
           console.log(err.message)
       }
-      console.log('Table created')}).run().finalize();
+      console.log('Check if table exists before adding data source to database')}).run().finalize();
   console.log("Uid => "+Uid+" Description => "+Description+" URL => "+URL+" Timestamp => "+Timestamp)
   db.run('INSERT into data_sources(Uid, Description, URL, Timestamp) VALUES (?, ?, ?, ?)', [Uid, Description, URL, Timestamp], function(err, row){
       if(err){
           console.log(err.message)
       }
-      console.log("Entry added to the table")
+      console.log("Entry added to ./db/data_sources.db3")
   })
       db.close();
   })

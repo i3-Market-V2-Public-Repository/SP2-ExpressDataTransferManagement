@@ -17,40 +17,52 @@ function connectToDatabase (pathToDb: string){
         if (err) {
             console.error(err.message);
         } else {
-            console.log('Connected to database.');
+            console.log('Connected to database '+pathToDb);
         }
     });
     return db
   }
 
-// Write proofs to database
-function writeToDatabase(ConsumerDid, DataSourceUid, Timestamp){
+// Add broker subscribers to database
+function addSubscriberToDatabase(ConsumerDid, DataSourceUid, Timestamp){
   
   var db = connectToDatabase('./db/consumer_subscribers.db3')
-  
+  let sql = 'SELECT * FROM consumer_subscribers where ConsumerDid =? AND DataSourceUid=?'
+
   db.serialize(() => {
 
   db.prepare('CREATE TABLE IF NOT EXISTS consumer_subscribers(ConsumerDid TEXT, DataSourceUid TEXT, Timestamp TEXT);', function(err) {
       if (err) {
           console.log(err.message)
       }
-      console.log('Table created')}).run().finalize();
+      console.log('Check if table consumer_subscribers exists before adding subscriber')}).run().finalize();
   console.log("ConsumerDid => "+ConsumerDid+" DataSourceUid => "+DataSourceUid+" Timestamp => "+Timestamp)
-  db.run('INSERT into consumer_subscribers(ConsumerDid, DataSourceUid, Timestamp) VALUES (?, ?, ?)', [ConsumerDid, DataSourceUid, Timestamp], function(err, row){
-      if(err){
-          console.log(err.message)
-      }
-      console.log("Entry added to the table")
+  db.serialize(function(){
+    db.all(sql, [ConsumerDid,DataSourceUid], (err, rows) => {
+    if (err) {
+    console.log(err)
+    }
+    if(rows.length == 0){
+        db.run('INSERT into consumer_subscribers(ConsumerDid, DataSourceUid, Timestamp) VALUES (?, ?, ?)', [ConsumerDid, DataSourceUid, Timestamp], function(err, row){
+            if(err){
+                console.log(err.message)
+            }
+            console.log(ConsumerDid + " added to database")
+            db.close();
+        })
+    }
+    });
   })
-      db.close();
   })
 }
 
+// Delete subscription from database
 function deleteSubscribtion (ConsumerDid, DataSourceUid){
 
 	var db = connectToDatabase('./db/consumer_subscribers.db3')
 	db.serialize(() => {
 		db.run('DELETE FROM consumer_subscribers WHERE ConsumerDid=? AND DataSourceUid=?', ConsumerDid, DataSourceUid, function(err, row){
+        console.log("Subscriber removed from database")
       if(err){
           console.log(err.message)
       }
@@ -68,19 +80,20 @@ function startStream(dataSourceUid){
         db.all(sql, [dataSourceUid], (err, rows) => {
             if (err) {
              console.log(err)
-            }
-            rows.forEach(async(row) => {
-                const url = row.URL
-                console.log('The Url is ' + url)
-                let resource = await fetch(`${url}/subscribe`, {
-                method: 'GET',
-                })
-                const isSent = await resource.json();
+            }else if(rows.length > 0){
+                rows.forEach(async(row) => {
+                    const url = row.URL
+                    console.log('The Url is ' + url)
+                    let resource = await fetch(`${url}/subscribe`, {
+                    method: 'GET',
+                    })
+                    console.log('Called endpoint: ' + `${url}/subscribe`)
+                    const isSent = await resource.json();
             })
+            }
         });
     })
     db.close()
-    console.log('Stream started')
     } catch (error) {
         console.log(error)
     }
@@ -108,7 +121,7 @@ client.on('message', function (topic, message) {
     const consumerDid = topicSplit[2]
     const dataSourceUid = topicSplit[3]
     const fromTopic = `${consumerDid}` + `/${dataSourceUid}`
-  	writeToDatabase(consumerDid, dataSourceUid, words[0].replace(':', ''))
+  	addSubscriberToDatabase(consumerDid, dataSourceUid, words[0].replace(':', ''))
   	console.log(consumerDid + " subscribed!")
 
     client.subscribe('/from/'+fromTopic,{qos: 2})
@@ -162,8 +175,8 @@ function mqttprocess(client){
             const consumerDid = topicSplit[2]
             const dataSourceUid = topicSplit[3]
             const fromTopic = `${consumerDid}` + `/${dataSourceUid}`
-  	        writeToDatabase(consumerDid, dataSourceUid, words[0].replace(':', ''))
-  	        console.log(consumerDid + " subscribed!")
+
+            addSubscriberToDatabase(consumerDid, dataSourceUid, words[0].replace(':', ''))
 
             client.subscribe('/from/'+fromTopic,{qos: 2})
 
