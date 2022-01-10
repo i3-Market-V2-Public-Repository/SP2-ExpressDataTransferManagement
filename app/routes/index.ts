@@ -167,10 +167,15 @@ router.post('/acl', jsonParser, passport.authenticate('jwtBearer', { session: fa
 res.sendStatus(status)
 })
 
+//router.post('/newdata/:uid',async(req, res) => {
+//const data = req.body
+//}
+
 //Endpoint to which a Data Souce sends stream data
 router.post('/newdata',async(req, res) => {
 
   try {
+
     const uid = req.body.uid 
     const data = req.body.data
 
@@ -473,10 +478,12 @@ export async function responseData(ID : string, obj: any, resource_path : string
   return promise;
 }
 
+// ------------- to be moved to common.ts
 function toArrayBuffer(buffer) {
   return buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength);
 }
 
+// -------------- to be moved to sql_functions
 // If it doesn't exist create the provider database and return the connection object
 // './db/provider.db3'
 function connectToDatabase (pathToDb: string){
@@ -491,6 +498,7 @@ function connectToDatabase (pathToDb: string){
   return db
 }
 
+// ------------- to be moved to common.ts
 // Get the date that will be written in the database
 function getTimestamp() {
   const currentDate = new Date();
@@ -498,6 +506,7 @@ function getTimestamp() {
   return dateFormat;
 }
 
+// -------------- to be moved to sql_functions
 // Write proofs to database
 function writeToDatabase(db, Timestamp, ConsumerID, BlockID, PoO, PoR, PoP){
 
@@ -525,6 +534,7 @@ function x (rows) {
   return totalPrice
 }
 
+// -------------- to be moved to sql_functions
 // Function that returns the total ammount the client has to pay
 function countBlocks(db, callback, fromDate, toDate, res){
   let sql = 'SELECT * FROM accounting where Date >= ? AND Date <= ?'
@@ -576,6 +586,7 @@ export async function validateProofOfReception (PoR:string) {
 }
 }
 
+// -------------- to be moved to sql_functions
 // Write registered datasources to database
 function writeRegisteredDataSource(Uid, Description, URL, Timestamp){
   
@@ -598,10 +609,10 @@ function writeRegisteredDataSource(Uid, Description, URL, Timestamp){
       db.close();
   })
 }
-export function getProof(){
-  return proof
-}
-
+// export function getProof(){
+//   return proof
+// }
+// -------------- to be moved to sql_functions
 function deleteSubscription (Uid){
 
 	var db = connectToDatabase('./db/data_sources.db3')

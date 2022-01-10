@@ -23,6 +23,31 @@ function connectToDatabase (pathToDb: string){
     return db
   }
 
+// Check if already subscribed
+
+function checkIfSubscribed (ConsumerDid, DataSourceUid) {
+
+    var db = connectToDatabase('./db/consumer_subscribers.db3')
+    var response = false
+
+    db.prepare('CREATE TABLE IF NOT EXISTS consumer_subscribers(ConsumerDid TEXT, DataSourceUid TEXT, Timestamp TEXT);', function(err) {
+        if (err) {
+            console.log(err.message)
+        }
+        console.log('Check if table consumer_subscribers exists before checking if there are any subscribers')}).run().finalize();
+    let sql = 'SELECT * FROM consumer_subscribers WHERE ConsumerDid=? AND DataSourceUid=?'
+    db.serialize(function(){
+        db.all(sql, [ConsumerDid ,DataSourceUid], (err, rows) => {
+                if (err) {
+                 console.log(err)
+                }else if(rows.length != 0){
+                    response = true
+                    console.log('Consumer already subscribed')
+                }
+            });
+        })
+    return response
+}
 // Add broker subscribers to database
 function addSubscriberToDatabase(ConsumerDid, DataSourceUid, Timestamp){
   
@@ -60,6 +85,7 @@ function addSubscriberToDatabase(ConsumerDid, DataSourceUid, Timestamp){
 function deleteSubscribtion (ConsumerDid, DataSourceUid){
 
 	var db = connectToDatabase('./db/consumer_subscribers.db3')
+
 	db.serialize(() => {
 		db.run('DELETE FROM consumer_subscribers WHERE ConsumerDid=? AND DataSourceUid=?', ConsumerDid, DataSourceUid, function(err, row){
         console.log("Subscriber removed from database")
@@ -157,7 +183,13 @@ function mqttinit(){
 
 function mqttprocess(client){
 
-    let words: string[]
+    let message_split: string[]
+    let topic_split
+    let consumerDid
+    let dataSourceUid
+    let timestamp
+    let topic_subscribed_to
+    let topic_unsubscribed_to
 
     client.on('connect', function () {
         isConnected = true
@@ -165,38 +197,52 @@ function mqttprocess(client){
         client.subscribe('$SYS/broker/log/#')
     })
 
-    client.on('message', function (topic, message) {
-        console.log(">> "+topic +" " +message.toString())
-        words = message.toString().split(' ');
-  
-        if(topic.endsWith("$SYS/broker/log/M/subscribe") && words[3].startsWith("/to/" + words[1])){
+    client.on('message', async function (topic, message) {
 
-            const topicSplit = words[3].split('/')
-            const consumerDid = topicSplit[2]
-            const dataSourceUid = topicSplit[3]
-            const fromTopic = `${consumerDid}` + `/${dataSourceUid}`
+        console.log(">>>>> "+topic +" " +message.toString())
 
-            addSubscriberToDatabase(consumerDid, dataSourceUid, words[0].replace(':', ''))
+        if (topic.startsWith("$SYS/broker/log/M/subscribe")) {
 
-            client.subscribe('/from/'+fromTopic,{qos: 2})
+            message_split = message.toString().split(' ');
+            topic_subscribed_to = message_split[3]
+            timestamp = message_split[0]
+            topic_split = message_split[3].split('/')
+            consumerDid = topic_split[2]
+            dataSourceUid = topic_split[3]
+        }
 
-            client.on('message', async function(topic, message) {
-                //console.log(topic + " " + message.toString())
-                if (topic.startsWith('/from/')){
-                    const poP = await validateProofOfReception(message.toString())
-                    client.publish('/to/'+fromTopic, JSON.stringify(poP))
-                }
-            })
+        if (topic.startsWith("$SYS/broker/log/M/unsubscribe")) {
+
+            message_split = message.toString().split(' ');
+            topic_unsubscribed_to = message_split[2]
+            topic_split = message_split[2].split('/')
+            consumerDid = topic_split[2]
+            dataSourceUid = topic_split[3]
+        }
+
+        if(topic.startsWith("$SYS/broker/log/M/subscribe") && topic_subscribed_to.startsWith("/to/" + consumerDid)){
+
+            client.subscribe('/from/'+`${consumerDid}` + `/${dataSourceUid}`)
+   
+            addSubscriberToDatabase(consumerDid, dataSourceUid, timestamp.replace(':', ''))
+
   	        startStream(dataSourceUid)
         }
 
-        if(topic.endsWith("$SYS/broker/log/M/unsubscribe") && words[2].startsWith("/to/" + words[1])){
-    
-            const topicSplit = words[2].split('/')
-            const dataSourceUid = topicSplit[3]
-            deleteSubscribtion(words[1], dataSourceUid)
-            console.log(words[1] + " unsubscribed!")
+        if(topic.startsWith("$SYS/broker/log/M/unsubscribe") && topic_unsubscribed_to.startsWith("/to/" + consumerDid)){
+            
+            deleteSubscribtion(consumerDid, dataSourceUid)
+            client.unsubscribe('/from/'+`${consumerDid}` + `/${dataSourceUid}`)
+            console.log(consumerDid + " unsubscribed!")
+
         }
+
+        // Response to client logic here
+        if (topic.startsWith('/from/')){
+            const poP = await validateProofOfReception(message.toString())
+            client.publish('/to/'+`${consumerDid}` + `/${dataSourceUid}`, JSON.stringify(poP))
+        }
+
     })
 }
 
