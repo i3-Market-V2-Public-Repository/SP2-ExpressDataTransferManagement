@@ -17,6 +17,7 @@ import * as path from 'path'
 import * as nonRepudiationProofs from '@i3-market/non-repudiation-proofs'
 import  parseJwk from 'jose/jwk/parse'
 import client_subscription from '../mqtt/client_subscribtion'
+import { Binary } from '@babel/types'
 
 require('isomorphic-fetch');
 
@@ -167,9 +168,51 @@ router.post('/acl', jsonParser, passport.authenticate('jwtBearer', { session: fa
 res.sendStatus(status)
 })
 
-//router.post('/newdata/:uid',async(req, res) => {
-//const data = req.body
-//}
+const rawParser = express.raw({ type: "application/octet-stream" });
+
+router.post('/newdata/:uid', rawParser,async(req, res) => {
+  try {
+
+    const data = req.body
+    const uid:String = String(req.params.uid)
+
+    console.log("Data is >>>>>> "+data)
+    console.log("uid is >>>>>> "+uid)
+  //if (uid != undefined && data != undefined){
+    const db = connectToDatabase('./db/consumer_subscribers.db3')
+    const client = client_subscription.mqttinit()
+
+    // NRP
+    let rawBufferData = Buffer.from(data)
+    proof = await proofOfOrigin(streamBlockId, data)
+    const response_data = {block_id: streamBlockId, cipherblock: proof.cipherblock, poO: proof.poO}
+    streamBlockId = streamBlockId + 1
+    let sql = 'SELECT * FROM consumer_subscribers WHERE DataSourceUid=?'
+    db.serialize(function(){
+      db.all(sql, [uid], (err, rows) => {
+          if (err) {
+           console.log(err);
+          }
+          console.log(rows.length)
+          console.log(rows[0])
+          
+          rows.forEach(function(item, index, array){
+          	client.publish('/to/'+item.ConsumerDid+'/'+item.DataSourceUid, JSON.stringify(response_data))
+          })
+      });
+      db.close()
+    })
+  
+    res.status(200).send({ msg: 'Data sent to broker' })
+
+  } catch (error) {
+    if(error instanceof Error){
+                console.log(`${error.message}`)
+                res.status(500).send({name: `${error.name}`, message: `${error.message}`})
+            }
+  }
+
+})
 
 //Endpoint to which a Data Souce sends stream data
 router.post('/newdata',async(req, res) => {
