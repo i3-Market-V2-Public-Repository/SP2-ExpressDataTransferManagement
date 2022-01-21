@@ -90,7 +90,7 @@ function deleteSubscribtion(ConsumerDid, DataSourceUid) {
     });
 }
 // Function that returns the URL of the subscibed data source
-function startStream(dataSourceUid) {
+function start_or_end_stream(dataSourceUid, action) {
     try {
         var db = connectToDatabase('./db/data_sources.db3');
         let sql = 'SELECT * FROM data_sources where Uid = ?';
@@ -103,11 +103,12 @@ function startStream(dataSourceUid) {
                     rows.forEach(async (row) => {
                         const url = row.URL;
                         console.log('The Url is ' + url);
-                        let resource = await fetch(`${url}/subscribe`, {
+                        let resource = await fetch(`${url}/${action}`, {
                             method: 'GET',
                         });
-                        console.log('Called endpoint: ' + `${url}/subscribe`);
+                        console.log('Called endpoint: ' + `${url}/${action}`);
                         const isSent = await resource.json();
+                        console.log(isSent);
                     });
                 }
             });
@@ -196,11 +197,14 @@ function mqttprocess(client) {
         if (topic.startsWith("$SYS/broker/log/M/subscribe") && topic_subscribed_to.startsWith("/to/" + consumerDid)) {
             client.subscribe('/from/' + `${consumerDid}` + `/${dataSourceUid}`);
             addSubscriberToDatabase(consumerDid, dataSourceUid, timestamp.replace(':', ''));
-            startStream(dataSourceUid);
+            const action = "subscribe";
+            start_or_end_stream(dataSourceUid, action);
         }
         if (topic.startsWith("$SYS/broker/log/M/unsubscribe") && topic_unsubscribed_to.startsWith("/to/" + consumerDid)) {
             deleteSubscribtion(consumerDid, dataSourceUid);
             client.unsubscribe('/from/' + `${consumerDid}` + `/${dataSourceUid}`);
+            const action = "unsubscribe";
+            start_or_end_stream(dataSourceUid, action);
             console.log(consumerDid + " unsubscribed!");
         }
         // Response to client logic here
