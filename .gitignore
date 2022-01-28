@@ -6,3 +6,4 @@ app/*.js
 app/routes/*.js
 app/logs/server.log
 app/mqtt/*.js
+app/users.ts

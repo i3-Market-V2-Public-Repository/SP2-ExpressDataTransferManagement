@@ -11,6 +11,7 @@ import * as swaggerUI from "swagger-ui-express";
 import * as YAML from "yamljs";
 import client_subscription from './mqtt/client_subscribtion'
 import * as mqtt from 'mqtt'
+import * as sqlite from './sqlite'
 
 const main = async function (): Promise<void> {
   const app = express()
@@ -29,8 +30,11 @@ const main = async function (): Promise<void> {
   app.use('/api/docs', swaggerUI.serve, swaggerUI.setup(swaggerDocument));
   // Load routes
   app.use('/', await routesPromise())
+
+  // add user to database
+  sqlite.addDataSpaceUser('admin', 'admin')
+  
   // Listen for consumers subscribtion
-  //client_subscribtion.subscribe()
   client_subscription.mqttprocess(client_subscription.mqttinit())
   //const subscription: string = client_subscription.subscribe(client_subscription.client)
   //console.log(subscription)

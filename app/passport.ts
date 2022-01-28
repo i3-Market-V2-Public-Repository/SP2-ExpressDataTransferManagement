@@ -6,6 +6,9 @@ import { Strategy as JwtStrategy, ExtractJwt } from 'passport-jwt'
 import { Issuer, Strategy as OidcStrategy, TokenSet } from 'openid-client'
 import config from './config'
 
+var users = require('./sqlite');
+var Strategy = require('passport-http').DigestStrategy;
+
 export default async (): Promise<typeof passport> => {
   const issuer = await Issuer.discover(config.oidc.providerUri)
   console.log('Discovered issuer %s %O', issuer.issuer, issuer.metadata)
@@ -33,6 +36,15 @@ export default async (): Promise<typeof passport> => {
     }, (token: TokenSet, done: Function) => {
       return done(null, token)
     }))
+  
+    passport.use(new Strategy({ qop: 'auth' },
+    function(username, cb) {
+      users.findByUsername(username, function(err, user) {
+        if (err) { return cb(err); }
+        if (!user) { return cb(null, false); }
+        return cb(null, user, user.password);
+      })
+    }));
 
   return passport
 }

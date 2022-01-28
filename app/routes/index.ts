@@ -170,7 +170,7 @@ res.sendStatus(status)
 
 const rawParser = express.raw({ type: "application/octet-stream", limit: 1048576});
 
-router.post('/newdata/:uid', rawParser,async(req, res) => {
+router.post('/newdata/:uid', rawParser, passport.authenticate('digest', { session: false }),async(req, res) => {
   try {
 
     const data = req.body
@@ -259,7 +259,7 @@ router.post('/newdata',async(req, res) => {
 )
 
 // Checks if auth is working
-router.get('/protected', passport.authenticate('jwtBearer', { session: false }),
+router.get('/protected', passport.authenticate('digest', { session: false }),
   (req, res) => {
     res.json({ msg: 'Do you think we\'re done?! Put yourself to work, you loser!' })
   }
@@ -297,7 +297,7 @@ router.post('/validatePoR', async(req, res) => {
 })
 
 // Endpoint to register a datasource
-router.post('/regds', (req, res) => {
+router.post('/regds', passport.authenticate('digest', { session: false }), (req, res) => {
   try {
     const Uid = req.body.uid
     const Description = req.body.description
