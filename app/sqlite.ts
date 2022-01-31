@@ -23,15 +23,23 @@ export function addDataSpaceUser (user, password) {
     console.log('Check if table data_space_users exists before adding new users')}).run().finalize();
 
     console.log("User => "+user+" Password => "+password)
-
-    db.run('INSERT into data_space_users(user, password) VALUES (?, ?)', [user, password], function(err, row){
-        if(err){
-            console.log(err.message)
-        }
-        console.log("Entry added to ./db/data_space_users.db3")
-    })
-
-    db.close();
+    
+    let select = 'SELECT * FROM data_space_users WHERE user=?'
+    let insert = 'INSERT into data_space_users(user, password) VALUES (?, ?)'
+    db.serialize(function(){
+        db.all(select, [user], (err, rows) => {
+                if (err) {
+                 console.log(err)
+                }else if(rows.length == 0){
+                    db.run(insert, [user, password], (err) => {
+                        if (err) {
+                         console.log(err)
+                        }
+                        db.close();
+                    });
+                }
+            });
+        })
 }
 
 exports.findByUsername = function(username, cb) {

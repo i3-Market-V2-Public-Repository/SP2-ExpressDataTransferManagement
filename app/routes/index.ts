@@ -168,6 +168,7 @@ router.post('/acl', jsonParser, passport.authenticate('jwtBearer', { session: fa
 res.sendStatus(status)
 })
 
+//router.post('/')
 const rawParser = express.raw({ type: "application/octet-stream", limit: 1048576});
 
 router.post('/newdata/:uid', rawParser, passport.authenticate('digest', { session: false }),async(req, res) => {
