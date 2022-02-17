@@ -1,14 +1,16 @@
 version: '3.6'
 
 services:
-  app:
+  data-access-api:
     build: 
       context: .
       args: 
         USER_ID: ${USER_ID-1000}
         GROUP_ID: ${GROUP_ID-1000}
     image: ${APP_NAME:-app}
-    container_name: ${APP_NAME:-app}
+    container_name: data-access-api
+    networks:
+      - dataaccessserver_i3m
     restart: unless-stopped
     env_file:
       - .env
@@ -17,7 +19,24 @@ services:
     ports:
       - ${ADDRESS:-0.0.0.0}:${PORT:-3000}:${PORT:-3000}
       - 127.0.0.1:${DEBUG_PORT:-9229}:9229
+    depends_on:
+      - mqtt-broker
     command:
       - npm
       - run
       - ${NPM_SCRIPT:-start}
+  mqtt-broker:
+    image:  iegomez/mosquitto-go-auth
+    container_name: mqtt-broker
+    networks:
+      - dataaccessserver_i3m
+    restart: unless-stopped
+    volumes:
+      - ./mqtt_conf/mosquitto/mosquitto:/etc/mosquitto/
+    ports:
+          - 1883:1883
+          - 1884:1884
+          - 9001:9001
+networks:
+  dataaccessserver_i3m:
+    driver: bridge

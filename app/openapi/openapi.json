@@ -11,19 +11,27 @@
   },
   "tags": [
     {
-      "name": "Data",
-      "description": "Get data from the server."
+      "name": "Batch Data",
+      "description": "Get batch data"
+    },
+    {
+      "name": "Stream Data",
+      "description": "Data streamed from broker"
+    },
+    {
+      "name": "Authenticate Stream Data Consumer",
+      "description": "Endpoints that the broker uses to authenticate the consumer"
     },
     {
       "name": "Authenticate",
-      "description": "Get access token required for retrieving data."
+      "description": "Get access token required for retrieving data"
     }
   ],
   "paths": {
     "/{data}": {
       "post": {
         "tags": [
-          "Data"
+          "Batch Data"
         ],
         "summary": "Get data",
         "description": "",
@@ -92,7 +100,7 @@
     "/validatePoR": {
       "post": {
         "tags": [
-          "Data"
+          "Batch Data"
         ],
         "summary": "Validate proof of receipt",
         "parameters": [],
@@ -132,7 +140,7 @@
     "/createInvoice": {
       "post": {
         "tags": [
-          "Data"
+          "Batch Data"
         ],
         "summary": "Create invoice call",
         "parameters": [],
@@ -173,6 +181,146 @@
         }
       }
     },
+    "/regds": {
+      "post": {
+        "tags": [
+          "Stream Data"
+        ],
+        "summary": "Register a datasource",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "Uid",
+                  "Description",
+                  "URL",
+                  "Action"
+                ],
+                "properties": {
+                  "Uid": {
+                    "type": "string"
+                  },
+                  "Description": {
+                    "type": "string"
+                  },
+                  "URL": {
+                    "type": "string"
+                  },
+                  "Action": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          },
+          "description": "Create invoice call"
+        },
+        "responses": {
+          "200": {
+            "description": "Data Source registered"
+          }
+        }
+      }
+    },
+    "/newdata/{uid}": {
+      "post": {
+        "tags": [
+          "Stream Data"
+        ],
+        "summary": "Endpoint that receives data from data source and then sent to broker",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "uid",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/octet-stream": {
+              "schema": {
+                "type": "string",
+                "format": "binary"
+              }
+            }
+          },
+          "description": "Endpoint that receives data from data source and then sent to broker"
+        },
+        "responses": {
+          "200": {
+            "description": "Data sent to broker"
+          }
+        }
+      }
+    },
+    "/user": {
+      "post": {
+        "tags": [
+          "Authenticate Stream Data Consumer"
+        ],
+        "summary": "Broker subscriber authentication",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/acl": {
+      "post": {
+        "tags": [
+          "Authenticate Stream Data Consumer"
+        ],
+        "summary": "Broker topic validation",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "clientid",
+                  "topic"
+                ],
+                "properties": {
+                  "clientid": {
+                    "type": "string"
+                  },
+                  "topic": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
     "/oidc/login/consumer": {
       "get": {
         "tags": [
@@ -182,7 +330,7 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": "a QR code is sent and should be scanned with a mobile phone using uPort to get the access token. For testing it is easier to just connect to this endpoint directly from a browser"
+            "description": "Connect to this endpoint directly from a browser to authenticate using the i3m wallet."
           }
         }
       }
@@ -196,7 +344,7 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": "a QR code is sent and should be scanned with a mobile phone using uPort to get the access token. For testing it is easier to just connect to this endpoint directly from a browser"
+            "description": "Connect to this endpoint directly from a browser to authenticate using the i3m wallet."
           }
         }
       }
@@ -305,7 +453,19 @@
   ],
   "servers": [
     {
-      "url": "http://95.211.3.244:3100",
+      "url": "/"
+    },
+    {
+      "url": "http://95.211.3.244:3100"
+    },
+    {
+      "url": "http://95.211.3.249:3100"
+    },
+    {
+      "url": "http://95.211.3.250:3100"
+    },
+    {
+      "url": "http://95.211.3.251:3100",
       "variables": {}
     }
   ]

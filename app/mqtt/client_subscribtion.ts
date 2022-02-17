@@ -2,6 +2,8 @@ import * as mqtt from 'mqtt'
 import * as sqlite3  from 'sqlite3';
 import { validateProofOfReception } from '../routes/index';
 
+const DigestFetch = require('digest-fetch')
+
 const options = {
     clientId: "data-access-api3",
     username: "DataAccessApi3",
@@ -110,7 +112,8 @@ function start_or_end_stream(dataSourceUid,action){
                 rows.forEach(async(row) => {
                     const url = row.URL
                     console.log('The Url is ' + url)
-                    let resource = await fetch(`${url}/${action}`, {
+                    const client = new DigestFetch('admin', 'admin') 
+                    let resource = await client.fetch(`${url}/${action}`, {
                     method: 'GET',
                     })
                     console.log('Called endpoint: ' + `${url}/${action}`)
