@@ -10,8 +10,7 @@ import * as crypto from 'crypto'
 import * as swaggerUI from "swagger-ui-express";
 import * as YAML from "yamljs";
 import client_subscription from './mqtt/client_subscribtion'
-import * as mqtt from 'mqtt'
-import * as sqlite from './sqlite'
+import * as sqlite from './sqliteFunctions'
 
 const main = async function (): Promise<void> {
   const app = express()
